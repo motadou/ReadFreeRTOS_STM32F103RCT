@@ -71,8 +71,7 @@ calculations. */
 have bit-0 clear, as it is loaded into the PC on exit from an ISR. */
 #define portSTART_ADDRESS_MASK				( ( StackType_t ) 0xfffffffeUL )
 
-/* Each task maintains its own interrupt status in the critical nesting
-variable. */
+/* Each task maintains its own interrupt status in the critical nesting variable. */
 static UBaseType_t uxCriticalNesting = 0xaaaaaaaa;
 
 /*
@@ -306,10 +305,10 @@ void vPortEnterCritical( void )
 
 void vPortExitCritical( void )
 {
-	configASSERT( uxCriticalNesting );
-	
+	configASSERT(uxCriticalNesting);
+
     uxCriticalNesting--;
-	
+
     if (uxCriticalNesting == 0)
 	{
 		portENABLE_INTERRUPTS();

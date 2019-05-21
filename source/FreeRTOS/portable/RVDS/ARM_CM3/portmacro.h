@@ -140,8 +140,7 @@ static portFORCE_INLINE void vPortSetBASEPRI(uint32_t ulBASEPRI)
 {
 	__asm
 	{
-		/* Barrier instructions are not used as this function is only used to
-		lower the BASEPRI value. */
+		/* Barrier instructions are not used as this function is only used to lower the BASEPRI value. */
 		msr basepri, ulBASEPRI
 	}
 }
