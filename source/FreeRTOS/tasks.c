@@ -183,15 +183,13 @@ count overflows. */
 /*-----------------------------------------------------------*/
 
 /*
- * Place the task represented by pxTCB into the appropriate ready list for
- * the task.  It is inserted at the end of the list.
+ * Place the task represented by pxTCB into the appropriate ready list for the task.  It is inserted at the end of the list.
  */
-#define prvAddTaskToReadyList( pxTCB )																\
-	traceMOVED_TASK_TO_READY_STATE( pxTCB );														\
-	taskRECORD_READY_PRIORITY( ( pxTCB )->uxPriority );												\
-	vListInsertEnd( &( pxReadyTasksLists[ ( pxTCB )->uxPriority ] ), &( ( pxTCB )->xStateListItem ) ); \
+#define prvAddTaskToReadyList( pxTCB )																    \
+	traceMOVED_TASK_TO_READY_STATE( pxTCB );														    \
+	taskRECORD_READY_PRIORITY( ( pxTCB )->uxPriority );												    \
+	vListInsertEnd( &( pxReadyTasksLists[ ( pxTCB )->uxPriority ] ), &( ( pxTCB )->xStateListItem ) );  \
 	tracePOST_MOVED_TASK_TO_READY_STATE( pxTCB )
-/*-----------------------------------------------------------*/
 
 /*
  * Several functions take an TaskHandle_t parameter that can optionally be NULL,
@@ -302,7 +300,7 @@ static variables must be declared volatile. */
 PRIVILEGED_DATA TCB_t * volatile pxCurrentTCB = NULL;
 
 /* Lists for ready and blocked tasks. --------------------*/
-PRIVILEGED_DATA static List_t pxReadyTasksLists[ configMAX_PRIORITIES ];/*< Prioritised ready tasks. */
+PRIVILEGED_DATA static List_t pxReadyTasksLists[configMAX_PRIORITIES];  /*< Prioritised ready tasks. */
 PRIVILEGED_DATA static List_t xDelayedTaskList1;						/*< Delayed tasks. */
 PRIVILEGED_DATA static List_t xDelayedTaskList2;						/*< Delayed tasks (two lists are used - one for delays that have overflowed the current tick count. */
 PRIVILEGED_DATA static List_t * volatile pxDelayedTaskList;				/*< Points to the delayed task list currently being used. */
@@ -603,20 +601,17 @@ static void prvAddNewTaskToReadyList( TCB_t *pxNewTCB ) PRIVILEGED_FUNCTION;
 
 #if( configSUPPORT_DYNAMIC_ALLOCATION == 1 )
 
-	BaseType_t xTaskCreate(	TaskFunction_t pxTaskCode,
-							const char * const pcName,
-							const uint16_t usStackDepth,
-							void * const pvParameters,
-							UBaseType_t uxPriority,
-							TaskHandle_t * const pxCreatedTask ) /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
-	{
-	TCB_t *pxNewTCB;
-	BaseType_t xReturn;
+BaseType_t xTaskCreate(TaskFunction_t pxTaskCode, const char * const pcName, const uint16_t usStackDepth, void * const pvParameters, UBaseType_t uxPriority, TaskHandle_t * const pxCreatedTask )
+{
+	TCB_t      * pxNewTCB;
+	BaseType_t   xReturn;
 
-		/* If the stack grows down then allocate the stack then the TCB so the stack
-		does not grow into the TCB.  Likewise if the stack grows up then allocate
-		the TCB then the stack. */
-		#if( portSTACK_GROWTH > 0 )
+
+    /* If the stack grows down then allocate the stack then the TCB so the stack
+	   does not grow into the TCB.  Likewise if the stack grows up then allocate
+	   the TCB then the stack. */
+
+    #if( portSTACK_GROWTH > 0 )
 		{
 			/* Allocate space for the TCB.  Where the memory comes from depends on
 			the implementation of the port malloc function and whether or not static
@@ -892,12 +887,12 @@ UBaseType_t x;
 
 static void prvAddNewTaskToReadyList( TCB_t *pxNewTCB )
 {
-	/* Ensure interrupts don't access the task lists while the lists are being
-	updated. */
+	/* Ensure interrupts don't access the task lists while the lists are being updated. */
 	taskENTER_CRITICAL();
 	{
 		uxCurrentNumberOfTasks++;
-		if( pxCurrentTCB == NULL )
+
+        if (pxCurrentTCB == NULL)
 		{
 			/* There are no other tasks, or all the other tasks are in
 			the suspended state - make this the current task. */
@@ -1755,10 +1750,10 @@ static void prvAddNewTaskToReadyList( TCB_t *pxNewTCB )
 
 void vTaskStartScheduler( void )
 {
-BaseType_t xReturn;
+    BaseType_t xReturn;
 
 	/* Add the idle task at the lowest priority. */
-	#if( configSUPPORT_STATIC_ALLOCATION == 1 )
+	#if (configSUPPORT_STATIC_ALLOCATION == 1)
 	{
 		StaticTask_t *pxIdleTaskTCBBuffer = NULL;
 		StackType_t *pxIdleTaskStackBuffer = NULL;
@@ -1786,16 +1781,17 @@ BaseType_t xReturn;
 	}
 	#else
 	{
+        /// 经过测试，走这里
 		/* The Idle task is being created using dynamically allocated RAM. */
-		xReturn = xTaskCreate(	prvIdleTask,
-								"IDLE", configMINIMAL_STACK_SIZE,
-								( void * ) NULL,
-								( tskIDLE_PRIORITY | portPRIVILEGE_BIT ),
-								&xIdleTaskHandle ); /*lint !e961 MISRA exception, justified as it is not a redundant explicit cast to all supported compilers. */
+		xReturn = xTaskCreate(prvIdleTask,
+							  "IDLE", configMINIMAL_STACK_SIZE,
+							  ( void * ) NULL,
+							  ( tskIDLE_PRIORITY | portPRIVILEGE_BIT ),
+							  &xIdleTaskHandle ); /*lint !e961 MISRA exception, justified as it is not a redundant explicit cast to all supported compilers. */
 	}
 	#endif /* configSUPPORT_STATIC_ALLOCATION */
 
-	#if ( configUSE_TIMERS == 1 )
+	#if (configUSE_TIMERS == 1)
 	{
 		if( xReturn == pdPASS )
 		{
@@ -1808,7 +1804,7 @@ BaseType_t xReturn;
 	}
 	#endif /* configUSE_TIMERS */
 
-	if( xReturn == pdPASS )
+	if (xReturn == pdPASS)
 	{
 		/* Interrupts are turned off here, to ensure a tick does not occur
 		before or during the call to xPortStartScheduler().  The stacks of
@@ -1836,7 +1832,7 @@ BaseType_t xReturn;
 
 		/* Setting up the timer tick is hardware specific and thus in the
 		portable interface. */
-		if( xPortStartScheduler() != pdFALSE )
+		if (xPortStartScheduler() != pdFALSE)
 		{
 			/* Should not reach here as if the scheduler is running the
 			function will not return. */
