@@ -43,12 +43,13 @@ void led1_task(void *pvParameters);
 
 int main(void)
 {
-		NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);//设置系统中断优先级分组4	 	 
-		delay_init();	    					//延时函数初始化	  
-		uart_init(115200);					//初始化串口
-		LED_Init();		  						//初始化LED
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);     //设置系统中断优先级分组4	 	 
+    delay_init();	    					            //延时函数初始化	  
+    uart_init(115200);					                //初始化串口
 
-		//创建开始任务
+    LED_Init();		  						            //初始化LED
+
+    //创建开始任务
     xTaskCreate((TaskFunction_t )start_task,            //任务函数
                 (const char*    )"start_task",          //任务名称
                 (uint16_t       )START_STK_SIZE,        //任务堆栈大小
@@ -56,7 +57,7 @@ int main(void)
                 (UBaseType_t    )START_TASK_PRIO,       //任务优先级
                 (TaskHandle_t*  )&StartTask_Handler);   //任务句柄              
 
-		vTaskStartScheduler();          //开启任务调度
+    vTaskStartScheduler();                              //开启任务调度
 }
 
 //开始任务任务函数

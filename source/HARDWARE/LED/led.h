@@ -13,10 +13,21 @@
 //Copyright(C) 广州市星翼电子科技有限公司 2009-2019
 //All rights reserved									  
 ////////////////////////////////////////////////////////////////////////////////// 
+
+#define BIT_HARDWARE 1
+
+#if BIT_HARDWARE == 0
+
 #define LED0 PAout(8)	// PA8
 #define LED1 PDout(2)	// PD2	
 
-void LED_Init(void);//初始化
+#else
 
+#define LED0 PGout(14)	// PA8
+#define LED1 PDout(13)	// PD2
+
+#endif
+
+void LED_Init(void);//初始化
 		 				    
 #endif
