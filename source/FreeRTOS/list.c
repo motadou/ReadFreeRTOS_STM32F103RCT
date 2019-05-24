@@ -8,65 +8,61 @@
 
 void vListInitialise( List_t * const pxList )
 {
-	/* The list structure contains a list item which is used to mark the
-	end of the list.  To initialise the list the list end is inserted
-	as the only list entry. */
-	pxList->pxIndex = ( ListItem_t * ) &( pxList->xListEnd );			/*lint !e826 !e740 The mini list structure is used as the list end to save RAM.  This is checked and valid. */
+	/* The list structure contains a list item which is used to mark the end of the list.  
+       To initialise the list the list end is inserted	as the only list entry. */
+	pxList->pxIndex             = (ListItem_t *)&(pxList->xListEnd);
 
-	/* The list end value is the highest possible value in the list to
-	ensure it remains at the end of the list. */
+	/* The list end value is the highest possible value in the list to ensure it remains at the end of the list. */
 	pxList->xListEnd.xItemValue = portMAX_DELAY;
 
-	/* The list end next and previous pointers point to itself so we know
-	when the list is empty. */
-	pxList->xListEnd.pxNext = ( ListItem_t * ) &( pxList->xListEnd );	/*lint !e826 !e740 The mini list structure is used as the list end to save RAM.  This is checked and valid. */
-	pxList->xListEnd.pxPrevious = ( ListItem_t * ) &( pxList->xListEnd );/*lint !e826 !e740 The mini list structure is used as the list end to save RAM.  This is checked and valid. */
+	/* The list end next and previous pointers point to itself so we know when the list is empty. */
+	pxList->xListEnd.pxNext     = (ListItem_t *)&(pxList->xListEnd);
+	pxList->xListEnd.pxPrevious = (ListItem_t *)&(pxList->xListEnd);
 
-	pxList->uxNumberOfItems = ( UBaseType_t ) 0U;
+	pxList->uxNumberOfItems     = (UBaseType_t )0U;
 
-	/* Write known values into the list if
-	configUSE_LIST_DATA_INTEGRITY_CHECK_BYTES is set to 1. */
+	/* Write known values into the list if configUSE_LIST_DATA_INTEGRITY_CHECK_BYTES is set to 1. */
 	listSET_LIST_INTEGRITY_CHECK_1_VALUE( pxList );
 	listSET_LIST_INTEGRITY_CHECK_2_VALUE( pxList );
 }
 
-void vListInitialiseItem( ListItem_t * const pxItem )
+void vListInitialiseItem(ListItem_t * const pxItem)
 {
 	/* Make sure the list item is not recorded as being on a list. */
 	pxItem->pvContainer = NULL;
 
 	/* Write known values into the list item if	configUSE_LIST_DATA_INTEGRITY_CHECK_BYTES is set to 1. */
-	listSET_FIRST_LIST_ITEM_INTEGRITY_CHECK_VALUE( pxItem );
-	listSET_SECOND_LIST_ITEM_INTEGRITY_CHECK_VALUE( pxItem );
+	listSET_FIRST_LIST_ITEM_INTEGRITY_CHECK_VALUE (pxItem);
+	listSET_SECOND_LIST_ITEM_INTEGRITY_CHECK_VALUE(pxItem);
 }
 /*-----------------------------------------------------------*/
 
-void vListInsertEnd( List_t * const pxList, ListItem_t * const pxNewListItem )
+void vListInsertEnd(List_t * const pxList, ListItem_t * const pxNewListItem)
 {
     ListItem_t * const pxIndex = pxList->pxIndex;
 
 	/* Only effective when configASSERT() is also defined, these tests may catch
-	the list data structures being overwritten in memory.  They will not catch
-	data errors caused by incorrect configuration or use of FreeRTOS. */
+	   the list data structures being overwritten in memory.  They will not catch
+	   data errors caused by incorrect configuration or use of FreeRTOS. */
 	listTEST_LIST_INTEGRITY( pxList );
 	listTEST_LIST_ITEM_INTEGRITY( pxNewListItem );
 
 	/* Insert a new list item into pxList, but rather than sort the list,
 	makes the new list item the last item to be removed by a call to
 	listGET_OWNER_OF_NEXT_ENTRY(). */
-	pxNewListItem->pxNext = pxIndex;
-	pxNewListItem->pxPrevious = pxIndex->pxPrevious;
+	pxNewListItem->pxNext       = pxIndex;
+	pxNewListItem->pxPrevious   = pxIndex->pxPrevious;
 
 	/* Only used during decision coverage testing. */
 	mtCOVERAGE_TEST_DELAY();
 
 	pxIndex->pxPrevious->pxNext = pxNewListItem;
-	pxIndex->pxPrevious = pxNewListItem;
+	pxIndex->pxPrevious         = pxNewListItem;
 
 	/* Remember which list the item is in. */
-	pxNewListItem->pvContainer = ( void * ) pxList;
+	pxNewListItem->pvContainer  = (void *)pxList;
 
-	( pxList->uxNumberOfItems )++;
+	(pxList->uxNumberOfItems)++;
 }
 /*-----------------------------------------------------------*/
 
@@ -135,13 +131,11 @@ const TickType_t xValueOfInsertion = pxNewListItem->xItemValue;
 
 	( pxList->uxNumberOfItems )++;
 }
-/*-----------------------------------------------------------*/
 
 UBaseType_t uxListRemove( ListItem_t * const pxItemToRemove )
 {
-/* The list item knows which list it is in.  Obtain the list from the list
-item. */
-List_t * const pxList = ( List_t * ) pxItemToRemove->pvContainer;
+    /* The list item knows which list it is in.  Obtain the list from the list item. */
+    List_t * const pxList = ( List_t * ) pxItemToRemove->pvContainer;
 
 	pxItemToRemove->pxNext->pxPrevious = pxItemToRemove->pxPrevious;
 	pxItemToRemove->pxPrevious->pxNext = pxItemToRemove->pxNext;
@@ -150,7 +144,7 @@ List_t * const pxList = ( List_t * ) pxItemToRemove->pvContainer;
 	mtCOVERAGE_TEST_DELAY();
 
 	/* Make sure the index is left pointing to a valid item. */
-	if( pxList->pxIndex == pxItemToRemove )
+	if (pxList->pxIndex == pxItemToRemove)
 	{
 		pxList->pxIndex = pxItemToRemove->pxPrevious;
 	}
@@ -160,9 +154,7 @@ List_t * const pxList = ( List_t * ) pxItemToRemove->pvContainer;
 	}
 
 	pxItemToRemove->pvContainer = NULL;
-	( pxList->uxNumberOfItems )--;
+	(pxList->uxNumberOfItems)--;
 
 	return pxList->uxNumberOfItems;
 }
-/*-----------------------------------------------------------*/
-

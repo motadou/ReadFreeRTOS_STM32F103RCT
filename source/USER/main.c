@@ -15,8 +15,10 @@
 
 //任务优先级
 #define START_TASK_PRIO		1
+
 //任务堆栈大小	
 #define START_STK_SIZE 		128  
+
 //任务句柄
 TaskHandle_t StartTask_Handler;
 //任务函数
@@ -92,6 +94,7 @@ void led0_task(void *pvParameters)
     while(1)
     {
         LED0 = ~LED0;
+
         vTaskDelay(500);
     }
 }   

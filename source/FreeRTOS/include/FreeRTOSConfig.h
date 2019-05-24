@@ -99,9 +99,9 @@
 /*                                FreeRTOS与中断有关的配置选项                                                  */
 /***************************************************************************************************************/
 #ifdef __NVIC_PRIO_BITS
-	#define configPRIO_BITS       		__NVIC_PRIO_BITS
+	#define configPRIO_BITS     __NVIC_PRIO_BITS
 #else
-	#define configPRIO_BITS       		4
+	#define configPRIO_BITS     4
 #endif
 
 #define configLIBRARY_LOWEST_INTERRUPT_PRIORITY			15                      //中断最低优先级

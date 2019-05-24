@@ -676,17 +676,17 @@ BaseType_t xTaskCreate(TaskFunction_t pxTaskCode, const char * const pcName, con
 #endif /* configSUPPORT_DYNAMIC_ALLOCATION */
 /*-----------------------------------------------------------*/
 
-static void prvInitialiseNewTask( 	TaskFunction_t pxTaskCode,
-									const char * const pcName,
-									const uint32_t ulStackDepth,
-									void * const pvParameters,
-									UBaseType_t uxPriority,
-									TaskHandle_t * const pxCreatedTask,
-									TCB_t *pxNewTCB,
-									const MemoryRegion_t * const xRegions ) /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
+static void prvInitialiseNewTask(TaskFunction_t pxTaskCode,	
+    const char * const pcName, 
+    const uint32_t ulStackDepth, 
+    void * const pvParameters,
+    UBaseType_t uxPriority,	
+    TaskHandle_t * const pxCreatedTask,	
+    TCB_t *pxNewTCB, 
+    const MemoryRegion_t * const xRegions)
 {
-StackType_t *pxTopOfStack;
-UBaseType_t x;
+    StackType_t * pxTopOfStack;
+    UBaseType_t   x;
 
 	#if( portUSING_MPU_WRAPPERS == 1 )
 		/* Should the task be created in privileged mode? */
@@ -743,7 +743,7 @@ UBaseType_t x;
 		/* Don't copy all configMAX_TASK_NAME_LEN if the string is shorter than
 		configMAX_TASK_NAME_LEN characters just in case the memory after the
 		string is not accessible (extremely unlikely). */
-		if( pcName[ x ] == 0x00 )
+		if (pcName[ x ] == 0x00)
 		{
 			break;
 		}
@@ -757,11 +757,10 @@ UBaseType_t x;
 	was greater or equal to configMAX_TASK_NAME_LEN. */
 	pxNewTCB->pcTaskName[ configMAX_TASK_NAME_LEN - 1 ] = '\0';
 
-	/* This is used as an array index so must ensure it's not too large.  First
-	remove the privilege bit if one is present. */
-	if( uxPriority >= ( UBaseType_t ) configMAX_PRIORITIES )
+	/* This is used as an array index so must ensure it's not too large.  First	remove the privilege bit if one is present. */
+	if (uxPriority >= (UBaseType_t)configMAX_PRIORITIES)
 	{
-		uxPriority = ( UBaseType_t ) configMAX_PRIORITIES - ( UBaseType_t ) 1U;
+		uxPriority = (UBaseType_t)configMAX_PRIORITIES - (UBaseType_t)1U;
 	}
 	else
 	{
@@ -769,43 +768,43 @@ UBaseType_t x;
 	}
 
 	pxNewTCB->uxPriority = uxPriority;
-	#if ( configUSE_MUTEXES == 1 )
+	#if (configUSE_MUTEXES == 1)
 	{
 		pxNewTCB->uxBasePriority = uxPriority;
-		pxNewTCB->uxMutexesHeld = 0;
+		pxNewTCB->uxMutexesHeld  = 0;
 	}
 	#endif /* configUSE_MUTEXES */
 
-	vListInitialiseItem( &( pxNewTCB->xStateListItem ) );
-	vListInitialiseItem( &( pxNewTCB->xEventListItem ) );
+	vListInitialiseItem(&(pxNewTCB->xStateListItem));
+	vListInitialiseItem(&(pxNewTCB->xEventListItem));
 
-	/* Set the pxNewTCB as a link back from the ListItem_t.  This is so we can get
-	back to	the containing TCB from a generic item in a list. */
-	listSET_LIST_ITEM_OWNER( &( pxNewTCB->xStateListItem ), pxNewTCB );
+	/* Set the pxNewTCB as a link back from the ListItem_t.  This is so we can get back to	the containing TCB from a generic item in a list. */
+    // 设置链表，将ListItem_t中的pOwner指向该TCB块
+	listSET_LIST_ITEM_OWNER(&(pxNewTCB->xStateListItem), pxNewTCB);
 
 	/* Event lists are always in priority order. */
-	listSET_LIST_ITEM_VALUE( &( pxNewTCB->xEventListItem ), ( TickType_t ) configMAX_PRIORITIES - ( TickType_t ) uxPriority ); /*lint !e961 MISRA exception as the casts are only redundant for some ports. */
-	listSET_LIST_ITEM_OWNER( &( pxNewTCB->xEventListItem ), pxNewTCB );
+	listSET_LIST_ITEM_VALUE(&(pxNewTCB->xEventListItem), (TickType_t)configMAX_PRIORITIES - (TickType_t)uxPriority);
+	listSET_LIST_ITEM_OWNER(&(pxNewTCB->xEventListItem), pxNewTCB);
 
-	#if ( portCRITICAL_NESTING_IN_TCB == 1 )
+	#if (portCRITICAL_NESTING_IN_TCB == 1)
 	{
-		pxNewTCB->uxCriticalNesting = ( UBaseType_t ) 0U;
+		pxNewTCB->uxCriticalNesting = (UBaseType_t) 0U;
 	}
 	#endif /* portCRITICAL_NESTING_IN_TCB */
 
-	#if ( configUSE_APPLICATION_TASK_TAG == 1 )
+	#if (configUSE_APPLICATION_TASK_TAG == 1)
 	{
 		pxNewTCB->pxTaskTag = NULL;
 	}
 	#endif /* configUSE_APPLICATION_TASK_TAG */
 
-	#if ( configGENERATE_RUN_TIME_STATS == 1 )
+	#if (configGENERATE_RUN_TIME_STATS == 1)
 	{
 		pxNewTCB->ulRunTimeCounter = 0UL;
 	}
 	#endif /* configGENERATE_RUN_TIME_STATS */
 
-	#if ( portUSING_MPU_WRAPPERS == 1 )
+	#if (portUSING_MPU_WRAPPERS == 1)
 	{
 		vPortStoreTaskMPUSettings( &( pxNewTCB->xMPUSettings ), xRegions, pxNewTCB->pxStack, ulStackDepth );
 	}
@@ -870,7 +869,7 @@ UBaseType_t x;
 	}
 }
 
-static void prvAddNewTaskToReadyList( TCB_t *pxNewTCB )
+static void prvAddNewTaskToReadyList(TCB_t * pxNewTCB)
 {
 	/* Ensure interrupts don't access the task lists while the lists are being updated. */
 	taskENTER_CRITICAL();
@@ -879,15 +878,13 @@ static void prvAddNewTaskToReadyList( TCB_t *pxNewTCB )
 
         if (pxCurrentTCB == NULL)
 		{
-			/* There are no other tasks, or all the other tasks are in
-			the suspended state - make this the current task. */
+			/* There are no other tasks, or all the other tasks are in the suspended state - make this the current task. */
 			pxCurrentTCB = pxNewTCB;
 
 			if (uxCurrentNumberOfTasks == ( UBaseType_t ) 1)
 			{
-				/* This is the first task to be created so do the preliminary
-				initialisation required.  We will not recover if this call
-				fails, but we will report the failure. */
+				/* This is the first task to be created so do the preliminary initialisation required.  
+                   We will not recover if this call fails, but we will report the failure. */
 				prvInitialiseTaskLists();
 			}
 			else
@@ -897,12 +894,10 @@ static void prvAddNewTaskToReadyList( TCB_t *pxNewTCB )
 		}
 		else
 		{
-			/* If the scheduler is not already running, make this task the
-			current task if it is the highest priority task to be created
-			so far. */
-			if( xSchedulerRunning == pdFALSE )
+			/* If the scheduler is not already running, make this task the current task if it is the highest priority task to be created so far. */
+			if (xSchedulerRunning == pdFALSE)
 			{
-				if( pxCurrentTCB->uxPriority <= pxNewTCB->uxPriority )
+				if (pxCurrentTCB->uxPriority <= pxNewTCB->uxPriority)
 				{
 					pxCurrentTCB = pxNewTCB;
 				}
@@ -919,17 +914,18 @@ static void prvAddNewTaskToReadyList( TCB_t *pxNewTCB )
 
 		uxTaskNumber++;
 
-		#if ( configUSE_TRACE_FACILITY == 1 )
+		#if (configUSE_TRACE_FACILITY == 1)
 		{
 			/* Add a counter into the TCB for tracing only. */
 			pxNewTCB->uxTCBNumber = uxTaskNumber;
 		}
 		#endif /* configUSE_TRACE_FACILITY */
-		traceTASK_CREATE( pxNewTCB );
+		
+        traceTASK_CREATE(pxNewTCB);
 
-		prvAddTaskToReadyList( pxNewTCB );
+		prvAddTaskToReadyList(pxNewTCB);
 
-		portSETUP_TCB( pxNewTCB );
+		portSETUP_TCB(pxNewTCB);
 	}
 	taskEXIT_CRITICAL();
 
@@ -983,10 +979,10 @@ void vTaskDelete(TaskHandle_t xTaskToDelete)
 			mtCOVERAGE_TEST_MARKER();
 		}
 
-			/* Increment the uxTaskNumber also so kernel aware debuggers can
-			detect that the task lists need re-generating.  This is done before
-			portPRE_TASK_DELETE_HOOK() as in the Windows port that macro will
-			not return. */
+	    /* Increment the uxTaskNumber also so kernel aware debuggers can
+		   detect that the task lists need re-generating.  This is done before
+		   portPRE_TASK_DELETE_HOOK() as in the Windows port that macro will
+		   not return. */
         uxTaskNumber++;
 
 		if (pxTCB == pxCurrentTCB)
@@ -996,7 +992,7 @@ void vTaskDelete(TaskHandle_t xTaskToDelete)
 				Place the task in the termination list.  The idle task will
 				check the termination list and free up any memory allocated by
 				the scheduler for the TCB and stack of the deleted task. */
-				vListInsertEnd( &xTasksWaitingTermination, &( pxTCB->xStateListItem ) );
+				vListInsertEnd(&xTasksWaitingTermination, &(pxTCB->xStateListItem));
 
 				/* Increment the ucTasksDeleted variable so the idle task knows
 				there is a task that has been deleted and that it should therefore
@@ -1024,21 +1020,20 @@ void vTaskDelete(TaskHandle_t xTaskToDelete)
 	}
     taskEXIT_CRITICAL();
 
-		/* Force a reschedule if it is the currently running task that has just
-		been deleted. */
-		if( xSchedulerRunning != pdFALSE )
+	/* Force a reschedule if it is the currently running task that has just	been deleted. */
+    if (xSchedulerRunning != pdFALSE)
+	{
+		if( pxTCB == pxCurrentTCB )
 		{
-			if( pxTCB == pxCurrentTCB )
-			{
-				configASSERT( uxSchedulerSuspended == 0 );
-				portYIELD_WITHIN_API();
-			}
-			else
-			{
-				mtCOVERAGE_TEST_MARKER();
-			}
+			configASSERT( uxSchedulerSuspended == 0 );
+			portYIELD_WITHIN_API();
+		}
+		else
+		{
+			mtCOVERAGE_TEST_MARKER();
 		}
 	}
+}
 
 #endif /* INCLUDE_vTaskDelete */
 /*-----------------------------------------------------------*/
@@ -3239,33 +3234,33 @@ static portTASK_FUNCTION( prvIdleTask, pvParameters )
 #endif /* portUSING_MPU_WRAPPERS */
 /*-----------------------------------------------------------*/
 
+/// 初始化进程列表
 static void prvInitialiseTaskLists( void )
 {
-UBaseType_t uxPriority;
+    UBaseType_t uxPriority;
 
-	for( uxPriority = ( UBaseType_t ) 0U; uxPriority < ( UBaseType_t ) configMAX_PRIORITIES; uxPriority++ )
+	for (uxPriority = ( UBaseType_t ) 0U; uxPriority < ( UBaseType_t ) configMAX_PRIORITIES; uxPriority++)
 	{
 		vListInitialise( &( pxReadyTasksLists[ uxPriority ] ) );
 	}
 
-	vListInitialise( &xDelayedTaskList1 );
-	vListInitialise( &xDelayedTaskList2 );
-	vListInitialise( &xPendingReadyList );
+	vListInitialise(&xDelayedTaskList1);
+	vListInitialise(&xDelayedTaskList2);
+	vListInitialise(&xPendingReadyList);    // 挂起进程链表
 
-	#if ( INCLUDE_vTaskDelete == 1 )
+	#if (INCLUDE_vTaskDelete == 1)
 	{
 		vListInitialise( &xTasksWaitingTermination );
 	}
 	#endif /* INCLUDE_vTaskDelete */
 
-	#if ( INCLUDE_vTaskSuspend == 1 )
+	#if (INCLUDE_vTaskSuspend == 1)
 	{
 		vListInitialise( &xSuspendedTaskList );
 	}
 	#endif /* INCLUDE_vTaskSuspend */
 
-	/* Start with pxDelayedTaskList using list1 and the pxOverflowDelayedTaskList
-	using list2. */
+	/* Start with pxDelayedTaskList using list1 and the pxOverflowDelayedTaskList using list2. */
 	pxDelayedTaskList = &xDelayedTaskList1;
 	pxOverflowDelayedTaskList = &xDelayedTaskList2;
 }
