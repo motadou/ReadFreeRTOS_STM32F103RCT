@@ -317,16 +317,16 @@ PRIVILEGED_DATA static List_t xSuspendedTaskList;					    /*< Tasks that are cur
 #endif
 
 /* Other file private variables. --------------------------------*/
-PRIVILEGED_DATA static volatile UBaseType_t uxCurrentNumberOfTasks 	= ( UBaseType_t ) 0U;
-PRIVILEGED_DATA static volatile TickType_t xTickCount 				= ( TickType_t ) 0U;
-PRIVILEGED_DATA static volatile UBaseType_t uxTopReadyPriority 		= tskIDLE_PRIORITY;
-PRIVILEGED_DATA static volatile BaseType_t xSchedulerRunning 		= pdFALSE;
-PRIVILEGED_DATA static volatile UBaseType_t uxPendedTicks 			= ( UBaseType_t ) 0U;
-PRIVILEGED_DATA static volatile BaseType_t xYieldPending 			= pdFALSE;
-PRIVILEGED_DATA static volatile BaseType_t xNumOfOverflows 			= ( BaseType_t ) 0;
-PRIVILEGED_DATA static UBaseType_t uxTaskNumber 					= ( UBaseType_t ) 0U;
-PRIVILEGED_DATA static volatile TickType_t xNextTaskUnblockTime		= ( TickType_t ) 0U; /* Initialised to portMAX_DELAY before the scheduler starts. */
-PRIVILEGED_DATA static TaskHandle_t xIdleTaskHandle					= NULL;			/*< Holds the handle of the idle task.  The idle task is created automatically when the scheduler is started. */
+PRIVILEGED_DATA static volatile UBaseType_t  uxCurrentNumberOfTasks = ( UBaseType_t ) 0U;
+PRIVILEGED_DATA static volatile TickType_t   xTickCount 			= ( TickType_t ) 0U;
+PRIVILEGED_DATA static volatile UBaseType_t  uxTopReadyPriority 	= tskIDLE_PRIORITY;
+PRIVILEGED_DATA static volatile BaseType_t   xSchedulerRunning 		= pdFALSE;
+PRIVILEGED_DATA static volatile UBaseType_t  uxPendedTicks 			= ( UBaseType_t ) 0U;
+PRIVILEGED_DATA static volatile BaseType_t   xYieldPending 			= pdFALSE;
+PRIVILEGED_DATA static volatile BaseType_t   xNumOfOverflows 		= ( BaseType_t ) 0;
+PRIVILEGED_DATA static          UBaseType_t  uxTaskNumber 			= ( UBaseType_t ) 0U;
+PRIVILEGED_DATA static volatile TickType_t   xNextTaskUnblockTime	= ( TickType_t ) 0U; /* Initialised to portMAX_DELAY before the scheduler starts. */
+PRIVILEGED_DATA static          TaskHandle_t xIdleTaskHandle		= NULL;			/*< Holds the handle of the idle task.  The idle task is created automatically when the scheduler is started. */
 
 /* Context switches are held pending while the scheduler is suspended.  Also,
 interrupts must not manipulate the xStateListItem of a TCB, or any of the
@@ -1124,45 +1124,44 @@ void vTaskDelete(TaskHandle_t xTaskToDelete)
 
 #if ( INCLUDE_vTaskDelay == 1 )
 
-	void vTaskDelay( const TickType_t xTicksToDelay )
+void vTaskDelay( const TickType_t xTicksToDelay )
+{
+    BaseType_t xAlreadyYielded = pdFALSE;
+
+	/* A delay time of zero just forces a reschedule. */
+	if (xTicksToDelay > (TickType_t)0U)
 	{
-	BaseType_t xAlreadyYielded = pdFALSE;
-
-		/* A delay time of zero just forces a reschedule. */
-		if( xTicksToDelay > ( TickType_t ) 0U )
+        configASSERT( uxSchedulerSuspended == 0 );
+		vTaskSuspendAll();
 		{
-			configASSERT( uxSchedulerSuspended == 0 );
-			vTaskSuspendAll();
-			{
-				traceTASK_DELAY();
+			traceTASK_DELAY();
 
-				/* A task that is removed from the event list while the
-				scheduler is suspended will not get placed in the ready
-				list or removed from the blocked list until the scheduler
-				is resumed.
+			/* A task that is removed from the event list while the
+			scheduler is suspended will not get placed in the ready
+			list or removed from the blocked list until the scheduler
+			is resumed.
 
-				This task cannot be in an event list as it is the currently
-				executing task. */
-				prvAddCurrentTaskToDelayedList( xTicksToDelay, pdFALSE );
-			}
-			xAlreadyYielded = xTaskResumeAll();
+			This task cannot be in an event list as it is the currently
+			executing task. */
+			prvAddCurrentTaskToDelayedList( xTicksToDelay, pdFALSE );
 		}
-		else
-		{
-			mtCOVERAGE_TEST_MARKER();
-		}
-
-		/* Force a reschedule if xTaskResumeAll has not already done so, we may
-		have put ourselves to sleep. */
-		if( xAlreadyYielded == pdFALSE )
-		{
-			portYIELD_WITHIN_API();
-		}
-		else
-		{
-			mtCOVERAGE_TEST_MARKER();
-		}
+		xAlreadyYielded = xTaskResumeAll();
 	}
+	else
+	{
+		mtCOVERAGE_TEST_MARKER();
+	}
+
+	/* Force a reschedule if xTaskResumeAll has not already done so, we may	have put ourselves to sleep. */
+	if (xAlreadyYielded == pdFALSE)
+	{
+		portYIELD_WITHIN_API();
+	}
+	else
+	{
+		mtCOVERAGE_TEST_MARKER();
+	}
+}
 
 #endif /* INCLUDE_vTaskDelay */
 /*-----------------------------------------------------------*/
@@ -1920,12 +1919,11 @@ static TickType_t prvGetExpectedIdleTime( void )
 
 BaseType_t xTaskResumeAll( void )
 {
-TCB_t *pxTCB = NULL;
-BaseType_t xAlreadyYielded = pdFALSE;
+    TCB_t      * pxTCB           = NULL;
+    BaseType_t   xAlreadyYielded = pdFALSE;
 
-	/* If uxSchedulerSuspended is zero then this function does not match a
-	previous call to vTaskSuspendAll(). */
-	configASSERT( uxSchedulerSuspended );
+	/* If uxSchedulerSuspended is zero then this function does not match a previous call to vTaskSuspendAll(). */
+	configASSERT(uxSchedulerSuspended);
 
 	/* It is possible that an ISR caused a task to be removed from an event
 	list while the scheduler was suspended.  If this was the case then the
@@ -1936,15 +1934,14 @@ BaseType_t xAlreadyYielded = pdFALSE;
 	{
 		--uxSchedulerSuspended;
 
-		if( uxSchedulerSuspended == ( UBaseType_t ) pdFALSE )
+		if (uxSchedulerSuspended == (UBaseType_t) pdFALSE)
 		{
-			if( uxCurrentNumberOfTasks > ( UBaseType_t ) 0U )
+			if (uxCurrentNumberOfTasks > (UBaseType_t)0U)
 			{
-				/* Move any readied tasks from the pending list into the
-				appropriate ready list. */
-				while( listLIST_IS_EMPTY( &xPendingReadyList ) == pdFALSE )
+				/* Move any readied tasks from the pending list into the appropriate ready list. */
+				while (listLIST_IS_EMPTY(&xPendingReadyList) == pdFALSE)
 				{
-					pxTCB = ( TCB_t * ) listGET_OWNER_OF_HEAD_ENTRY( ( &xPendingReadyList ) );
+					pxTCB = (TCB_t *) listGET_OWNER_OF_HEAD_ENTRY((&xPendingReadyList));
 					( void ) uxListRemove( &( pxTCB->xEventListItem ) );
 					( void ) uxListRemove( &( pxTCB->xStateListItem ) );
 					prvAddTaskToReadyList( pxTCB );
@@ -1979,7 +1976,7 @@ BaseType_t xAlreadyYielded = pdFALSE;
 				{
 					UBaseType_t uxPendedCounts = uxPendedTicks; /* Non-volatile copy. */
 
-					if( uxPendedCounts > ( UBaseType_t ) 0U )
+					if (uxPendedCounts > (UBaseType_t) 0U)
 					{
 						do
 						{
@@ -2400,27 +2397,24 @@ implementations require configUSE_TICKLESS_IDLE to be set to a value other than
 #endif /* INCLUDE_xTaskAbortDelay */
 /*----------------------------------------------------------*/
 
-BaseType_t xTaskIncrementTick( void )
+BaseType_t xTaskIncrementTick(void)
 {
-TCB_t * pxTCB;
-TickType_t xItemValue;
-BaseType_t xSwitchRequired = pdFALSE;
+    TCB_t      * pxTCB;
+    TickType_t   xItemValue;
+    BaseType_t   xSwitchRequired = pdFALSE;
 
 	/* Called by the portable layer each time a tick interrupt occurs.
-	Increments the tick then checks to see if the new tick value will cause any
-	tasks to be unblocked. */
-	traceTASK_INCREMENT_TICK( xTickCount );
-	if( uxSchedulerSuspended == ( UBaseType_t ) pdFALSE )
+	Increments the tick then checks to see if the new tick value will cause any	tasks to be unblocked. */
+	traceTASK_INCREMENT_TICK(xTickCount);
+	if (uxSchedulerSuspended == ( UBaseType_t )pdFALSE)
 	{
-		/* Minor optimisation.  The tick count cannot change in this
-		block. */
+		/* Minor optimisation.  The tick count cannot change in this block. */
 		const TickType_t xConstTickCount = xTickCount + 1;
 
-		/* Increment the RTOS tick, switching the delayed and overflowed
-		delayed lists if it wraps to 0. */
+		/* Increment the RTOS tick, switching the delayed and overflowed delayed lists if it wraps to 0. */
 		xTickCount = xConstTickCount;
 
-		if( xConstTickCount == ( TickType_t ) 0U )
+		if (xConstTickCount == ( TickType_t )0U)
 		{
 			taskSWITCH_DELAYED_LISTS();
 		}
@@ -2485,8 +2479,7 @@ BaseType_t xSwitchRequired = pdFALSE;
 						mtCOVERAGE_TEST_MARKER();
 					}
 
-					/* Place the unblocked task into the appropriate ready
-					list. */
+					/* Place the unblocked task into the appropriate ready list. */
 					prvAddTaskToReadyList( pxTCB );
 
 					/* A task being unblocked cannot cause an immediate
@@ -2516,7 +2509,7 @@ BaseType_t xSwitchRequired = pdFALSE;
 		writer has not explicitly turned time slicing off. */
 		#if ( ( configUSE_PREEMPTION == 1 ) && ( configUSE_TIME_SLICING == 1 ) )
 		{
-			if( listCURRENT_LIST_LENGTH( &( pxReadyTasksLists[ pxCurrentTCB->uxPriority ] ) ) > ( UBaseType_t ) 1 )
+			if (listCURRENT_LIST_LENGTH(&(pxReadyTasksLists[pxCurrentTCB->uxPriority])) > (UBaseType_t)1)
 			{
 				xSwitchRequired = pdTRUE;
 			}
@@ -2527,7 +2520,7 @@ BaseType_t xSwitchRequired = pdFALSE;
 		}
 		#endif /* ( ( configUSE_PREEMPTION == 1 ) && ( configUSE_TIME_SLICING == 1 ) ) */
 
-		#if ( configUSE_TICK_HOOK == 1 )
+		#if (configUSE_TICK_HOOK == 1)
 		{
 			/* Guard against the tick hook being called when the pended tick
 			count is being unwound (when the scheduler is being unlocked). */
@@ -2546,8 +2539,7 @@ BaseType_t xSwitchRequired = pdFALSE;
 	{
 		++uxPendedTicks;
 
-		/* The tick hook gets called at regular intervals, even if the
-		scheduler is locked. */
+		/* The tick hook gets called at regular intervals, even if the scheduler is locked. */
 		#if ( configUSE_TICK_HOOK == 1 )
 		{
 			vApplicationTickHook();
@@ -2555,9 +2547,9 @@ BaseType_t xSwitchRequired = pdFALSE;
 		#endif
 	}
 
-	#if ( configUSE_PREEMPTION == 1 )
+	#if (configUSE_PREEMPTION == 1)
 	{
-		if( xYieldPending != pdFALSE )
+		if (xYieldPending != pdFALSE)
 		{
 			xSwitchRequired = pdTRUE;
 		}

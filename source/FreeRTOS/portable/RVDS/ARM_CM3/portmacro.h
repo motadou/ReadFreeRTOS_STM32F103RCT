@@ -75,7 +75,7 @@ extern void vPortEnterCritical( void );
 extern void vPortExitCritical( void );
 
 #define portDISABLE_INTERRUPTS()				vPortRaiseBASEPRI()
-#define portENABLE_INTERRUPTS()					vPortSetBASEPRI( 0 )
+#define portENABLE_INTERRUPTS()					vPortSetBASEPRI(0)
 #define portENTER_CRITICAL()					vPortEnterCritical()
 #define portEXIT_CRITICAL()						vPortExitCritical()
 #define portSET_INTERRUPT_MASK_FROM_ISR()		ulPortRaiseBASEPRI()
